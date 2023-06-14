@@ -2,6 +2,7 @@ package com.example.coroutinesandbox
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.widget.Toast
 import androidx.core.view.isVisible
@@ -13,6 +14,8 @@ class MainActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
+
+    private var handler = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +54,9 @@ class MainActivity : AppCompatActivity() {
     private fun loadCity(callBack: (String) -> Unit) {
         thread {
             Thread.sleep(3000)
-            callBack.invoke("Moscow")
+            handler.post{
+                callBack.invoke("Moscow")
+            }
         }
     }
 
