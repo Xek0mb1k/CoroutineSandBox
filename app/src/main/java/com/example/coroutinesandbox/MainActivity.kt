@@ -1,13 +1,14 @@
 package com.example.coroutinesandbox
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.example.coroutinesandbox.databinding.ActivityMainBinding
-import kotlin.concurrent.thread
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,84 +16,73 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private var handler = Handler()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         binding.downloadButton.setOnClickListener {
-            loadData()
+
+            lifecycleScope.launch {
+                loadData()
+            }
+
         }
     }
 
-    private fun loadData() {
+    private suspend fun loadData() {
         binding.progressBar.isVisible = true
         binding.downloadButton.isEnabled = false
-        loadCity{ city: String ->
-            binding.cityTextView.text = city
+        val city = loadCity()
+        binding.cityTextView.text = city
 
-            loadTemp(city){ temp: Int ->
-                loadHumidity(city){
-                    Log.d("debug", it.toString())
-                    loadPressure(city){
-                        Log.d("debug", it.toString())
-                        loadVisibility(city){
-                            Log.d("debug", it.toString())
-                            loadWind(city){
-                                Log.d("debug", it.toString())
-                                binding.tempTextView.text = temp.toString()
-                                binding.progressBar.isVisible = false
-                                binding.downloadButton.isEnabled = true
-                            }
-                        }
-                    }
-                }
-            }
-        }
+
+
+        val humidity = loadHumidity(city)
+        Log.d("debug", humidity.toString())
+        val temp = loadTemp(city)
+        Log.d("debug", temp.toString())
+        binding.tempTextView.text = temp.toString()
+        val vis = loadVisibility(city)
+        Log.d("debug", vis.toString())
+        val wind = loadWind(city)
+        Log.d("debug", wind.toString())
+
+
+        binding.progressBar.isVisible = false
+        binding.downloadButton.isEnabled = true
+
     }
 
-    private fun loadCity(callBack: (String) -> Unit) {
-        thread {
-            Thread.sleep(3000)
-            handler.post{
-                callBack.invoke("Moscow")
-            }
-        }
+    private suspend fun loadCity(): String {
+        delay(3000)
+        return "Moscow"
     }
 
-    private fun loadTemp(city: String, callBack: (Int) -> Unit) {
+    private suspend fun loadTemp(city: String): Int {
 
         Toast.makeText(this, "Loading temp from this city: $city", Toast.LENGTH_SHORT)
             .show()
-        Thread.sleep(1000)
-        callBack.invoke(17)
+        delay(1000)
+        return 17
     }
 
-    private fun loadPressure(city: String, callBack: (Int) -> Unit){
-        Toast.makeText(this, "Loading PRESSURE from this city: $city", Toast.LENGTH_SHORT)
+    private suspend fun loadHumidity(city: String): Int {
+        Toast.makeText(this, "Loading HUMIDITY from this city: $city", Toast.LENGTH_SHORT)
             .show()
-        Thread.sleep(1000)
-        callBack.invoke(500)
+        delay(1000)
+        return 17
     }
 
-    private fun loadHumidity(city: String, callBack: (Int) -> Unit){
-        Toast.makeText(this, "Loading temp from this city: $city", Toast.LENGTH_SHORT)
-            .show()
-        Thread.sleep(1000)
-        callBack.invoke(17)
-    }
-
-    private fun loadVisibility(city: String, callBack: (Int) -> Unit){
+    private suspend fun loadVisibility(city: String): Int {
         Toast.makeText(this, "Loading visibility from this city: $city", Toast.LENGTH_SHORT)
             .show()
-        Thread.sleep(1000)
-        callBack.invoke(2000)
+        delay(1000)
+        return 2000
     }
 
-    private fun loadWind(city: String, callBack: (Int) -> Unit){
+    private suspend fun loadWind(city: String): Int {
         Toast.makeText(this, "Loading wind from this city: $city", Toast.LENGTH_SHORT)
             .show()
-        Thread.sleep(3000)
-        callBack.invoke(5)
+        delay(3000)
+        return 5
     }
 }
